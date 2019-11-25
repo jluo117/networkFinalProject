@@ -7,7 +7,7 @@ from twitter import *
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 tw = twitter()
 #Bind the socket to the port
-server_address = ('localhost', 10009)
+server_address = ('localhost', 10008)
 print >>sys.stderr, 'starting up on %s port %s' % server_address
 sock.bind(server_address)
 
@@ -15,6 +15,9 @@ sock.bind(server_address)
 sock.listen(10)
 
 clients = set()
+def printMenu(connection,client_address):
+	connection.sendto("\n---MAIN MENU---\n1: View Offline Messages\n2: Show Subscriptions\n3: Add a Subscription\n4: Delete a Subscription\n5: Create a Tweet\n6: Find messages using a Tag\n--------------------\n",client_address)
+
 
 def printLastMessage(User):
         res = tw.printLastMessage(User)
@@ -63,7 +66,7 @@ def clientthread(connection,client_address):
 					count += len(offLineMsg[tags])
 				connection.sendto("You have " + str(count) + " messages\n",client_address)
 			continue
-		connection.sendto("waiting for input",client_address)
+		printMenu(connection,client_address)
 		data = connection.recv(1024)	
 		if data == "1":
 			connection.sendto("Do you want ALL offline msgs or just a sub",client_address)
@@ -127,5 +130,6 @@ while True:
     start_new_thread(clientthread, (connection,client_address,))
 sock.close()
 #fp_server
+
 
 
