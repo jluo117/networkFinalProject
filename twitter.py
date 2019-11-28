@@ -15,7 +15,7 @@ class twitter:
 		if PassWord != self.usersList[userName]:
 			return 0
 		return 1
-	def printLastMessage(self,userName):
+	def printLastMessage(self,userName): #1 
 		msgToReturn = []
 		userTable = self.table[userName]
 		for curTag in userTable:
@@ -24,21 +24,21 @@ class twitter:
 					msgToReturn.append(self.Tags[curTag.tag][curMsgIndex])
 				curTag.curIndex = len(self.Tags[curTag.tag])
 		return msgToReturn
-	def addNewSub(self,userName,sub):
+	def addNewSub(self,userName,sub): #2
 		newSub = userTag(sub)
 		self.table[userName].append(newSub)
-	def showSub(self,userName):
+	def showSub(self,userName): #3
 		subList = []
 		for tag in self.table[userName]:
 			subList.append(tag.tag)
 		return subList
-	def delSub(self,userName,sub):
+	def delSub(self,userName,sub): #4
 		curUser = self.table[userName]
 		for i in range(0,len(curUser)):
 			if curUser[i].tag == sub:
 				curUser.pop(i)	
 				return
-	def addMsg(self,sub,msg):
+	def addMsg(self,sub,msg): #5
 		if len(msg) > 140:
 			return False
 		if sub in self.Tags:
@@ -46,7 +46,7 @@ class twitter:
 		else:
 			self.Tags[sub] = [msg]
 		return True
-	def hashSearch(self,sub):
+	def hashSearch(self,sub): #6
 		if sub not in self.Tags:
 			return None
 		tagList = self.Tags[sub]
@@ -57,10 +57,15 @@ class twitter:
 		for i in range(0,10):
 			outPut.append(outPutList[i])
 		return outPut
-	def unreadMsg(self,userName):
+	def unreadMsg(self,userName): #7
 		msgTol = self.printLastMessage(userName)
 		if msgTol == None:
 			return 0
 		return len(msgTol)
-	def Reverse(self,lst): 
+	def msgCount(self): #8
+		count = 0
+		for i in self.Tags:
+			count += len(i)
+		return count
+	def Reverse(self,lst):  
 	    return [ele for ele in reversed(lst)] 
