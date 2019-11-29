@@ -1,9 +1,11 @@
 import socket
 import sys
 from thread import*
+kill = False
 def readFromServer():
-	res = sock.recv(1024)
-	print('\n' + res)
+	while not kill:
+		res = sock.recv(1024)
+		print('\n' + res)
 
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -32,7 +34,9 @@ try:
         # Send data
         message = raw_input("Input: ")
 	if(message == "Quit" or message == 'quit'):
-	    break
+	    kill = True
+	    sock.close()
+	    exit()
         print >>sys.stderr, 'sending "%s"' % message
         sock.sendall(message)
 

@@ -49,6 +49,7 @@ def clientthread(connection,client_address):
 				if not res:
 					connection.sendto("0",client_address)
 					connection.sendto("Please enter username and password again",client_address)
+					continue
 
 				else:
 					curUser = splitData[1]
