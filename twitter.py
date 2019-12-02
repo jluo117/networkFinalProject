@@ -1,11 +1,19 @@
+import socket
+import sys
 class userTag:
 	def __init__(self,tag):
 		self.tag = tag
 		self.curIndex = 0
+class connectionInfo:
+	def __init__(self,connection,client_address):
+		self.Connection = connection
+		self.Client = client_address
+	def send(self,msg):
+		self.connection.sendto(msg,self.Client)
 class twitter:
 	usersList = {"bob":"123", "root":"root", "page":"larry"}
-	table = {"bob":[],"root":[],"page":[]}
-	userSubTable = {}
+	table = {"bob":[],"root":[],"page":[], "admin":[]}
+	userLogOn = {}
 	Tags = {}
 	def offLineMsg(self,userName):
 		if userName == "admin":
@@ -19,6 +27,13 @@ class twitter:
 					bucket[curTag.tag].append(self.Tags[curTag.tag][curMsgIndex])
 				curTag.curIndex = len(self.Tags[curTag.tag])
 		return bucket
+	def userSignOn(self,userName,connection,client_address):
+		newConnection = connectionInfo(connection,client_address)
+		self.userLogOn[userName] = newConnection
+	def userLogOut(self,userName):
+		if userName in self.userLogOn:
+			del self.userLogOn[userName]
+	
 	def login (self,userName,PassWord):
 		if userName == "admin" and PassWord == "admin":
 			return 2
@@ -55,6 +70,11 @@ class twitter:
 			self.Tags[sub].append(msg)
 		else:
 			self.Tags[sub] = [msg]
+		for logOn in self.userLogOn:
+			userSubs = self.table[logOn]
+			if sub in userSubs:
+				self.userLogOn[logOn].send(msg)
+	
 	def hashSearch(self,sub): #6
 		if sub not in self.Tags:
 			return None

@@ -56,6 +56,7 @@ def clientthread(connection,client_address):
 					continue
 				connection.sendto("Welcome " + curUser + '\n',client_address)
 				offLineMsg = tw.offLineMsg(curUser)
+				tw.userSignOn(curUser,connection,client_address)
 				count = 0
 				#start_new_thread(updateThread,(connection,client_address,curUser))
 				for tags in offLineMsg:
@@ -110,7 +111,9 @@ def clientthread(connection,client_address):
 			count = tw.msgCount()
 			connection.sendto(str(count) + " message\n",client_address)
 
-
+		elif data == "q":
+			tw.userLogOut(curUser)
+			break
         finally:
             #clients.remove(connection)
             connection.close()
