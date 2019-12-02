@@ -2,19 +2,25 @@ import socket
 import sys
 from thread import *
 from twitter import *
-
+class ConnectionInfo:
+	def __init__ (self,connection,client):
+		self.Connection = connection
+		self.Client = client
+	def sengMsg(self,msg):
+		print("sending")
+		self.Connection.sendto(msg,self.Client)
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 tw = twitter()
 #Bind the socket to the port
-server_address = ('localhost', 10008)
+server_address = ('localhost', 10010)
 print >>sys.stderr, 'starting up on %s port %s' % server_address
 sock.bind(server_address)
 
 # Listen for incoming connections
 sock.listen(10)
-
-clients = set()
+signIn = {}
+clients = {}
 def printMenu(connection,client_address):
 	connection.sendto("\n---MAIN MENU---\n1: View Offline Messages\n2: Show Subscriptions\n3: Add a Subscription\n4: Delete a Subscription\n5: Create a Tweet\n6: Find messages using a Tag\n--------------------\n",client_address)
 
@@ -60,11 +66,11 @@ def clientthread(connection,client_address):
 				connection.sendto("Welcome " + curUser + '\n',client_address)
 				offLineMsg = tw.offLineMsg(curUser)
 				tw.userSignOn(curUser,connection,client_address)
+				newConnection = ConnectionInfo(connection,client_address)
+				signIn[curUser] = newConnection
 				count = 0
+				userTable = tw.table
 				#start_new_thread(updateThread,(connection,client_address,curUser))
-				for tags in offLineMsg:
-					count += len(offLineMsg[tags])
-				connection.sendto("You have " + str(count) + " messages\n",client_address)
 			continue
 		printMenu(connection,client_address)
 		data = connection.recv(1024)	
@@ -83,25 +89,47 @@ def clientthread(connection,client_address):
 			connection.sendto("you are sub to the following\n",client_address)
 			connection.sendto(str(result),client_address)
 		elif data == "3":
+			posSubs = tw.showAllSub()
+			connection.sendto(str(posSubs) + '\n',client_address)
 			connection.sendto("enter the desire sub\n",client_address)
 			sub = connection.recv(1024)
+			if sub == "back":
+				continue
 			tw.addNewSub(curUser,sub)
 		elif data == "4":
 			userSubs = tw.showSub(curUser)
 			connection.sendto("select the desire sub to delete\n",client_address)
 			result = tw.showSub(curUser)
 			connection.sendto(str(result) + '\n',client_address)
+			if sub == "back":
+				continue
 			delSub = connection.recv(1024)
 			tw.delSub(curUser,delSub)
 		elif data == "5":
 			connection.sendto("enter your tag\n",client_address)
 			sub = connection.recv(1024)
+			if sub == "back":
+				continue
 			connection.sendto("enter your msg\n",client_address)
 			msg = connection.recv(1024)
 			while len(msg) > 140:
 				connection.sendto("140 char max\n",client_address)
 				msg = connection.recv(1024)
-			tw.addMsg(sub,msg)
+			sendAry = tw.addMsg(sub,msg)
+			users = tw.table
+			print(users)
+			for user in users:
+				curAry = users[user]
+				trueTags = []
+				for tag in curAry:
+					trueTags.append(tag.tag)
+				if sub in trueTags:
+					if user in signIn:
+						print(user)
+						sendStuff = signIn[user]
+						sendStuff.sengMsg(msg)
+
+
 		elif data == "6":
 			connection.sendto("enter a tag to lookup\n",client_address)
 			lookup = connection.recv(1024)
@@ -116,9 +144,10 @@ def clientthread(connection,client_address):
 
 		elif data == "q":
 			tw.userLogOut(curUser)
+			del signIn[curUser]
 			break
         finally:
-            #clients.remove(connection)
+            
             connection.close()
 
 
@@ -126,7 +155,7 @@ def clientthread(connection,client_address):
 while True:
     connection, client_address = sock.accept()
     print 'Connected to ' + client_address[0] + ':' + str(client_address[1])
-    clients.add(connection)
+    clients[connection] = client_address
     start_new_thread(clientthread, (connection,client_address,))
 sock.close()
 #fp_server

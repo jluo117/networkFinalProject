@@ -28,12 +28,17 @@ class twitter:
 				curTag.curIndex = len(self.Tags[curTag.tag])
 		return bucket
 	def userSignOn(self,userName,connection,client_address):
+		print("sign in")
 		newConnection = connectionInfo(connection,client_address)
 		self.userLogOn[userName] = newConnection
 	def userLogOut(self,userName):
 		if userName in self.userLogOn:
 			del self.userLogOn[userName]
-	
+	def showAllSub(self):
+		sub = []
+		for i in self.Tags:
+			sub.append(i)
+		return sub	
 	def login (self,userName,PassWord):
 		if userName == "admin" and PassWord == "admin":
 			return 2
@@ -70,11 +75,12 @@ class twitter:
 			self.Tags[sub].append(msg)
 		else:
 			self.Tags[sub] = [msg]
+		targetSend = []
 		for logOn in self.userLogOn:
 			userSubs = self.table[logOn]
 			if sub in userSubs:
-				self.userLogOn[logOn].send(msg)
-	
+				targetSend.append(self.userLogOn[logOn])
+		return targetSend	
 	def hashSearch(self,sub): #6
 		if sub not in self.Tags:
 			return None
