@@ -5,8 +5,20 @@ class userTag:
 class twitter:
 	usersList = {"bob":"123", "root":"root", "page":"larry"}
 	table = {"bob":[],"root":[],"page":[]}
+	userSubTable = {}
 	Tags = {}
-	
+	def offLineMsg(self,userName):
+		if userName == "admin":
+			return None
+		bucket = {}
+		userTable = self.table[userName]
+		for curTag in userTable:
+			if curTag.tag in self.Tags:
+				bucket[curTag.tag] = []
+				for curMsgIndex in range(curTag.curIndex,len(self.Tags[curTag.tag])):
+					bucket[curTag.tag].append(self.Tags[curTag.tag][curMsgIndex])
+				curTag.curIndex = len(self.Tags[curTag.tag])
+		return bucket
 	def login (self,userName,PassWord):
 		if userName == "admin" and PassWord == "admin":
 			return 2
@@ -39,13 +51,10 @@ class twitter:
 				curUser.pop(i)	
 				return
 	def addMsg(self,sub,msg): #5
-		if len(msg) > 140:
-			return False
 		if sub in self.Tags:
 			self.Tags[sub].append(msg)
 		else:
 			self.Tags[sub] = [msg]
-		return True
 	def hashSearch(self,sub): #6
 		if sub not in self.Tags:
 			return None
